@@ -12,6 +12,8 @@ const CATEGORY_NAV = [
   { label: 'Home', slug: 'home' },
   { label: 'Sports', slug: 'sports' },
   { label: 'Books', slug: 'books' },
+  {label: 'Toys', slug: 'toys' },
+  {label: 'Beauty', slug: 'beauty' },
 ];
 
 function ConsumerNavbar({ onCartOpen }) {
@@ -23,14 +25,14 @@ function ConsumerNavbar({ onCartOpen }) {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30" style={{boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}}>
       {/* Top bar */}
-      <div className="flex items-center gap-4 px-4 sm:px-6 h-16">
+      <div className="relative flex items-center gap-4 px-4 sm:px-6 h-16">
         {/* Logo */}
         <Link to="/" className="font-bold text-xl text-indigo-600 flex-shrink-0 tracking-tight">
           ShopWave
         </Link>
 
         {/* Search — hidden on very small screens */}
-        <div className="flex-1 max-w-lg hidden sm:block">
+        <div className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
           <SearchBar />
         </div>
 
@@ -129,7 +131,7 @@ function ConsumerNavbar({ onCartOpen }) {
       </div>
 
       {/* Category nav */}
-      <nav className="hidden lg:flex items-center gap-0 px-6 border-t border-gray-100 overflow-x-auto">
+      <nav className="hidden lg:flex items-center gap-36 px-6 border-t border-gray-100 overflow-x-auto">
         {CATEGORY_NAV.map((cat) => (
           <NavLink
             key={cat.slug}
@@ -172,7 +174,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold text-gray-900 mb-3">EcomWeb</h3>
+            <h3 className="font-bold text-gray-900 mb-3">ShopWave</h3>
             <p className="text-sm text-gray-500">Your one-stop shop for everything you need.</p>
           </div>
           {[
@@ -193,7 +195,7 @@ function Footer() {
           ))}
         </div>
         <div className="border-t border-gray-100 mt-8 pt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} EcomWeb. All rights reserved.
+          © {new Date().getFullYear()} ShopWave. All rights reserved.
         </div>
       </div>
     </footer>

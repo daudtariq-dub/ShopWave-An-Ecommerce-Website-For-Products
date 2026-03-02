@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Card from '../../components/ui/Card';
 import Loader from '../../components/ui/Loader';
-import axiosInstance from '../../api/axios';
+import { MOCK_PRODUCTS, MOCK_ORDERS, delay } from '../../api/mock';
 import { formatPrice } from '../../utils/helpers';
 
 const STATS_CONFIG = [
@@ -71,30 +71,17 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
-      try {
-        const [productsRes, ordersRes, usersRes] = await Promise.allSettled([
-          axiosInstance.get('/admin/stats').catch(() => null),
-          axiosInstance.get('/products'),
-        ]);
-
-        if (cancelled) return;
-
-        const productsCount = productsRes.status === 'fulfilled'
-          ? (productsRes.value?.data?.total ?? (productsRes.value?.data?.products ?? productsRes.value?.data)?.length ?? 0)
-          : 0;
-
-        setStats({
-          products: productsCount,
-          orders: 0,
-          users: 0,
-          revenue: formatPrice(0),
-        });
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
+    delay(400).then(() => {
+      if (cancelled) return;
+      const revenue = MOCK_ORDERS.reduce((sum, o) => sum + (o.total ?? 0), 0);
+      setStats({
+        products: MOCK_PRODUCTS.length,
+        orders: MOCK_ORDERS.length,
+        users: 142,
+        revenue: formatPrice(revenue),
+      });
+      setLoading(false);
+    });
     return () => { cancelled = true; };
   }, []);
 
