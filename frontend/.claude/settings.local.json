@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /Users/daudtariq/ecom-web/frontend/ecom-web && npm install react-router-dom axios formik yup lottie-react && npm install -D tailwindcss @tailwindcss/vite)"
+    ]
+  }
+}
