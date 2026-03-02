@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f8fafc;
+  color: #111827;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Smooth page-level scroll */
+html { scroll-behavior: smooth; }
+
+/* Remove number input spinners */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type='number'] { -moz-appearance: textfield; }
+
+/* Remove search input clear button */
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+/* ─── Dual-thumb range slider ───────────────────── */
+.range-thumb {
+  pointer-events: none;
+}
+.range-thumb::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: all;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.35), 0 0 0 1px rgba(79, 70, 229, 0.15);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.range-thumb::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.45), 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+.range-thumb::-moz-range-thumb {
+  pointer-events: all;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.35);
+}
+.range-thumb::-webkit-slider-runnable-track { background: transparent; }
+
+/* ─── Card shadows ──────────────────────────────── */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.card-shadow-hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Focus ring global ─────────────────────────── */
+:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* ─── Toast overrides ───────────────────────────── */
+.Toastify__toast {
+  border-radius: 14px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  padding: 14px 18px !important;
+}
+.Toastify__toast--success { border-left: 4px solid #22c55e; }
+.Toastify__toast--error   { border-left: 4px solid #ef4444; }
+.Toastify__toast--info    { border-left: 4px solid #4f46e5; }
+
+/* ─── Line clamp utilities ──────────────────────── */
+.line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+
+/* ─── Infinite carousel marquee ─────────────────── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+/* ─── Scrollbar styling ─────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }

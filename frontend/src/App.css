@@ -1,0 +1,4 @@
+/* App-level styles — Tailwind handles all utility classes */
+#root {
+  min-height: 100vh;
+}

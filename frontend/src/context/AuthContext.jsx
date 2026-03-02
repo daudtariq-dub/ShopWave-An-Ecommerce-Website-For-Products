@@ -1,115 +1,62 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
-import api from '../api/axios';
-import { STORAGE_KEYS } from '../utils/constants';
-
-const DEMO_USERS = {
-  user: {
-    email: 'demo@shopper.com',
-    password: 'demo123',
-    payload: {
-      id: 'demo-user',
-      name: 'Demo Shopper',
-      email: 'demo@shopper.com',
-      role: 'user',
-    },
-  },
-  admin: {
-    email: 'admin@shopper.com',
-    password: 'admin123',
-    payload: {
-      id: 'demo-admin',
-      name: 'Demo Admin',
-      email: 'admin@shopper.com',
-      role: 'admin',
-    },
-  },
-};
+import { createContext, useState, useEffect, useCallback } from 'react';
+import { authApi } from '../api/auth.api';
+import {
+  getStoredUser, setStoredUser, removeStoredUser,
+  getToken, setToken, removeToken,
+} from '../utils/helpers';
 
 export const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // true until initial validation done
+  const [error, setError] = useState(null);
 
+  // Validate stored token on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-    const storedUser = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
+    const token = getToken();
+    if (!token) { setLoading(false); return; }
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        setUser(null);
-      }
-    }
-    setLoading(false);
+    authApi.me()
+      .then((userData) => {
+        setUser(userData);
+        setStoredUser(userData);
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        removeToken();
+        removeStoredUser();
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (credentials) => {
-    const demoMatch = Object.values(DEMO_USERS).find(
-      (demo) =>
-        demo.email === credentials.email && demo.password === credentials.password,
-    );
-
-    if (demoMatch) {
-      const fakeToken = `demo-token-${demoMatch.payload.role}`;
-      const nextUser = demoMatch.payload;
-
-      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, fakeToken);
-      localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(nextUser));
-      setToken(fakeToken);
-      setUser(nextUser);
-
-      return { token: fakeToken, user: nextUser };
-    }
-
-    const error = new Error('Invalid demo credentials');
-    error.response = { data: { message: 'Invalid email or password' } };
-    throw error;
+  const login = useCallback((token, userData) => {
+    setToken(token);
+    setStoredUser(userData);
+    setUser(userData);
+    setIsAuthenticated(true);
+    setError(null);
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch {
-      // ignore logout errors to avoid blocking user
-    }
-
-    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    await authApi.logout();
+    removeToken();
+    removeStoredUser();
     setUser(null);
-    setToken(null);
+    setIsAuthenticated(false);
   }, []);
 
-  const getCurrentUser = useCallback(async () => {
-    const { data } = await api.get('/auth/me');
-    if (data?.user) {
-      localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(data.user));
-      setUser(data.user);
-    }
-    return data.user;
+  const updateUser = useCallback((userData) => {
+    setUser(userData);
+    setStoredUser(userData);
   }, []);
 
-  const value = useMemo(
-    () => ({
-      user,
-      token,
-      loading,
-      isAuthenticated: Boolean(token),
-      login,
-      logout,
-      getCurrentUser,
-    }),
-    [user, token, loading, login, logout, getCurrentUser],
+  return (
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, loading, error, login, logout, updateUser, setError, setLoading }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-};
-
+}
