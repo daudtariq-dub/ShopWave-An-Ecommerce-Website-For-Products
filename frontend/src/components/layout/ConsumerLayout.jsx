@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import CartBadge from '../cart/CartBadge';
@@ -18,7 +18,6 @@ const CATEGORY_NAV = [
 
 function ConsumerNavbar({ onCartOpen }) {
   const { user, isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -55,7 +54,7 @@ function ConsumerNavbar({ onCartOpen }) {
                 <span className="text-sm font-medium text-gray-700 hidden md:block">
                   {user?.name ?? user?.email}
                 </span>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-400 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -74,15 +73,6 @@ function ConsumerNavbar({ onCartOpen }) {
                     </svg>
                     Profile
                   </Link>
-                  {user?.role === 'admin' && (
-                    <Link to="/admin" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Admin Portal
-                    </Link>
-                  )}
                   <div className="border-t border-gray-100">
                     <button
                       onClick={logout}
@@ -178,16 +168,42 @@ function Footer() {
             <p className="text-sm text-gray-500">Your one-stop shop for everything you need.</p>
           </div>
           {[
-            { title: 'Shop', links: ['Electronics', 'Clothing', 'Home', 'Sports'] },
-            { title: 'Account', links: ['Sign In', 'Register', 'Orders', 'Profile'] },
-            { title: 'Support', links: ['Help Center', 'Returns', 'Contact Us', 'FAQ'] },
+            {
+              title: 'Shop',
+              links: [
+                { label: 'Electronics', to: '/category/electronics' },
+                { label: 'Clothing', to: '/category/clothing' },
+                { label: 'Home', to: '/category/home' },
+                { label: 'Sports', to: '/category/sports' },
+              ],
+            },
+            {
+              title: 'Account',
+              links: [
+                { label: 'Sign In', to: '/login' },
+                { label: 'Register', to: '/register' },
+                { label: 'Orders', to: '/account/orders' },
+                { label: 'Profile', to: '/account/profile' },
+              ],
+            },
+            {
+              title: 'Support',
+              links: [
+                { label: 'Help Center', to: '/support/help-center' },
+                { label: 'Returns', to: '/support/returns' },
+                { label: 'Contact Us', to: '/support/contact-us' },
+                { label: 'FAQ', to: '/support/faq' },
+              ],
+            },
           ].map((col) => (
             <div key={col.title}>
               <h4 className="font-semibold text-gray-900 mb-3 text-sm">{col.title}</h4>
               <ul className="flex flex-col gap-2">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <span className="text-sm text-gray-500 hover:text-indigo-600 cursor-pointer transition-colors">{l}</span>
+                  <li key={l.label}>
+                    <Link to={l.to} className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>

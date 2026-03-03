@@ -38,7 +38,6 @@ export default function OrdersTable({ orders, onOrderUpdate }) {
         </thead>
         <tbody>
           {orders.map((order) => {
-            const statusMeta = ORDER_STATUS_LABELS[order.status] ?? ORDER_STATUS_LABELS.pending;
             return (
               <>
                 <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
@@ -59,7 +58,7 @@ export default function OrdersTable({ orders, onOrderUpdate }) {
                       value={order.status}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                       disabled={updatingId === order.id}
-                      className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50"
+                      className="select-with-chevron text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:opacity-50"
                     >
                       {Object.values(ORDER_STATUS).map((s) => (
                         <option key={s} value={s}>{ORDER_STATUS_LABELS[s]?.label ?? s}</option>

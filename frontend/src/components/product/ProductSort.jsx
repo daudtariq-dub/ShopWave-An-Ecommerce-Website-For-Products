@@ -7,7 +7,7 @@ export default function ProductSort({ value, onChange }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="text-sm border border-gray-300 rounded-xl px-3 py-2 bg-white text-gray-700
+        className="select-with-chevron text-sm border border-gray-300 rounded-xl px-3 py-2 bg-white text-gray-700
           focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
       >
         {SORT_OPTIONS.map((opt) => (

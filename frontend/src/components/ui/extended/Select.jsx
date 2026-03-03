@@ -9,7 +9,7 @@ export default function Select({ label, name, value, onChange, options = [], pla
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-xl bg-white text-gray-900
+        className="select-with-chevron w-full px-4 py-2.5 text-sm border border-gray-300 rounded-xl bg-white text-gray-900
           focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-colors"
       >
         {placeholder && <option value="">{placeholder}</option>}

@@ -1,15 +1,40 @@
 /** Mock auth API — swap this file for real axios calls once the backend is ready */
 import { delay } from './mock';
 
+export const MOCK_USERS = {
+  admin: {
+    email: 'admin@shopwave.com',
+    password: 'admin123',
+    user: { id: 'u-admin-1', email: 'admin@shopwave.com', name: 'Admin User', role: 'admin' },
+  },
+  consumer: {
+    email: 'user@shopwave.com',
+    password: 'user1234',
+    user: { id: 'u-consumer-1', email: 'user@shopwave.com', name: 'Consumer User', role: 'user' },
+  },
+};
+
 export const authApi = {
   login: async ({ email, password }) => {
     await delay(500);
     if (!email || !password) throw new Error('Email and password are required.');
-    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-    return {
-      token: 'mock-jwt-' + Date.now(),
-      user: { id: 'u1', email, name, role: 'admin' },
-    };
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedEmail === MOCK_USERS.admin.email && password === MOCK_USERS.admin.password) {
+      return {
+        token: 'mock-jwt-admin-' + Date.now(),
+        user: MOCK_USERS.admin.user,
+      };
+    }
+
+    if (normalizedEmail === MOCK_USERS.consumer.email && password === MOCK_USERS.consumer.password) {
+      return {
+        token: 'mock-jwt-user-' + Date.now(),
+        user: MOCK_USERS.consumer.user,
+      };
+    }
+
+    throw new Error('Invalid credentials. Use the provided demo admin or consumer account.');
   },
 
   register: async ({ name, email, password }) => {
@@ -21,7 +46,7 @@ export const authApi = {
     };
   },
 
-  googleLogin: async (_credential) => {
+  googleLogin: async () => {
     await delay(400);
     return {
       token: 'mock-jwt-google-' + Date.now(),

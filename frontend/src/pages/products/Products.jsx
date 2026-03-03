@@ -49,7 +49,7 @@ export default function Products() {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 capitalize"
+              className="select-with-chevron px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 capitalize"
             >
               <option value="">All categories</option>
               {categories.map((cat) => (

@@ -28,7 +28,13 @@ export default function Login() {
     initialValues: { email: '', password: '' },
     validationSchema: loginSchema,
     onSubmit: async (values) => {
-      try { await login(values); } catch { /* handled in context */ }
+      try {
+        const data = await login(values);
+        const target = data?.user?.role === 'admin' ? '/admin' : returnTo;
+        navigate(target, { replace: true });
+      } catch {
+        /* handled in context */
+      }
     },
   });
 
@@ -50,6 +56,12 @@ export default function Login() {
             <p className="text-gray-500 text-sm mt-1">Sign in to continue</p>
           </div>
 
+          <div className="mb-5 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-xs text-indigo-900">
+            <p className="font-semibold mb-1">Demo accounts</p>
+            <p>Admin: admin@shopwave.com / admin123</p>
+            <p>Consumer: user@shopwave.com / user1234</p>
+          </div>
+
           {error && (
             <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
               <p className="text-sm text-red-600">{error}</p>
@@ -65,9 +77,9 @@ export default function Login() {
                 <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                 Remember me
               </label>
-              <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+              <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                 Forgot password?
-              </button>
+              </Link>
             </div>
 
             <Button type="submit" variant="primary" size="lg" fullWidth loading={loading}>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Link, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useSidebar } from '../../hooks/useSidebar';
 
@@ -21,6 +21,14 @@ const ADMIN_NAV = [
     label: 'Orders', to: '/admin/orders',
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
   },
+  {
+    label: 'Users', to: '/admin/users',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+  },
+  {
+    label: 'My Profile', to: '/admin/profile',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1112 21a8.965 8.965 0 01-6.879-3.196zM15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+  }
 ];
 
 function AdminSidebar({ mobileOpen, onMobileClose }) {
@@ -57,16 +65,6 @@ function AdminSidebar({ mobileOpen, onMobileClose }) {
       </nav>
 
       <div className="border-t border-gray-200 p-3 flex-shrink-0">
-        <Link
-          to="/"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors mb-1 ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? 'Back to Store' : undefined}
-        >
-          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          {!collapsed && <span>Back to Store</span>}
-        </Link>
         <button
           onClick={toggleSidebar}
           className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors ${collapsed ? 'justify-center' : ''}`}
@@ -95,6 +93,8 @@ function AdminSidebar({ mobileOpen, onMobileClose }) {
 
 function AdminTopbar({ onMenuClick }) {
   const { user, logout } = useAuth();
+  const [accountOpen, setAccountOpen] = useState(false);
+
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
       <button onClick={onMenuClick} className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 lg:hidden">
@@ -102,14 +102,32 @@ function AdminTopbar({ onMenuClick }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      <div className="ml-auto flex items-center gap-3">
-        <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
-          <span className="text-indigo-700 font-semibold text-sm">
-            {user?.name?.[0]?.toUpperCase() ?? 'A'}
-          </span>
-        </div>
-        <span className="text-sm font-medium text-gray-700 hidden sm:block">{user?.name ?? user?.email}</span>
-        <button onClick={logout} className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+      <div className="ml-auto flex items-center gap-3 relative">
+        <button
+          onClick={() => setAccountOpen((v) => !v)}
+          className="flex items-center gap-2 rounded-xl border border-gray-200 px-2 py-1.5 hover:bg-gray-50"
+        >
+          <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+            <span className="text-indigo-700 font-semibold text-sm">
+              {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'A'}
+            </span>
+          </div>
+          <span className="text-sm font-medium text-gray-700 hidden sm:block">{user?.name ?? user?.email}</span>
+          <svg className="w-4 h-4 text-gray-500 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {accountOpen && (
+          <div className="absolute right-0 top-12 w-48 rounded-xl border border-gray-200 bg-white shadow-lg z-30 py-1.5">
+            <Link to="/admin/profile" onClick={() => setAccountOpen(false)} className="block px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              My Profile
+            </Link>
+            <p className="px-3.5 py-2 text-xs text-gray-500 truncate">{user?.email}</p>
+          </div>
+        )}
+
+        <button onClick={logout} className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Logout">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>

@@ -28,6 +28,9 @@ export const ROUTES = {
   ADMIN_PRODUCT_EDIT: '/admin/products/:id/edit',
   ADMIN_INVENTORY: '/admin/inventory',
   ADMIN_ORDERS: '/admin/orders',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_USER_DETAILS: '/admin/users/:id',
+  ADMIN_PROFILE: '/admin/profile',
 };
 
 export const STOCK_THRESHOLDS = {
