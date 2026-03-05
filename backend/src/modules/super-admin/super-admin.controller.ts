@@ -30,9 +30,33 @@ export const getStores = async (c: Context<{ Variables: AppVariables }>) => {
 // POST /super-admin/stores
 export const createStore = async (c: Context<{ Variables: AppVariables }>) => {
   const body = await c.req.json();
-  const data = storeSchema.parse(body);
+  const { adminEmail, ...storeData } = body;
+  const data = storeSchema.parse(storeData);
   const store = await prisma.store.create({ data });
-  return c.json({ store }, 201);
+
+  let generatedPassword: string | null = null;
+
+  if (adminEmail) {
+    let user = await prisma.user.findUnique({ where: { email: adminEmail } });
+
+    if (!user) {
+      // Create the user with a random password
+      const bcrypt = await import('bcryptjs');
+      generatedPassword = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6).toUpperCase() + '!';
+      const hashed = await bcrypt.hash(generatedPassword, 12);
+      const nameFromEmail = adminEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+      user = await prisma.user.create({
+        data: { name: nameFromEmail, email: adminEmail, password: hashed, role: 'ADMIN', storeId: store.id },
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'ADMIN', storeId: store.id },
+      });
+    }
+  }
+
+  return c.json({ store, generatedPassword }, 201);
 };
 
 // PATCH /super-admin/stores/:id
