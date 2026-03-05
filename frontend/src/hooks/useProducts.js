@@ -16,10 +16,10 @@ export function useProducts() {
       const data = await productsApi.getAll(params);
       const list = data.products ?? data ?? [];
       setProducts(list);
-      setTotal(data.total ?? list.length);
+      setTotal(data.total ?? data.pagination?.total ?? list.length);
       return data;
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to fetch products.');
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to fetch products.');
       throw err;
     } finally {
       setLoading(false);
@@ -34,7 +34,7 @@ export function useProducts() {
       setProduct(data);
       return data;
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to fetch product.');
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to fetch product.');
       throw err;
     } finally {
       setLoading(false);
@@ -48,10 +48,10 @@ export function useProducts() {
       const data = await productsApi.getByCategory(slug, params);
       const list = data.products ?? data ?? [];
       setProducts(list);
-      setTotal(data.total ?? list.length);
+      setTotal(data.total ?? data.pagination?.total ?? list.length);
       return data;
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to fetch products.');
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to fetch products.');
       throw err;
     } finally {
       setLoading(false);

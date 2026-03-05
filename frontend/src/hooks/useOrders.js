@@ -16,7 +16,7 @@ export function useOrders() {
       setOrders(list);
       return list;
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to fetch orders.');
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to fetch orders.');
       throw err;
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ export function useOrders() {
       setOrder(data);
       return data;
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to fetch order.');
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to fetch order.');
       throw err;
     } finally {
       setLoading(false);
@@ -45,7 +45,7 @@ export function useOrders() {
       const data = await ordersApi.place(payload);
       return data;
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Failed to place order.');
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to place order.');
       throw err;
     } finally {
       setLoading(false);

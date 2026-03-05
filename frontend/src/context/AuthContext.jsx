@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
   }, []);
 
+
   const updateUser = useCallback((userData) => {
     setUser(userData);
     setStoredUser(userData);

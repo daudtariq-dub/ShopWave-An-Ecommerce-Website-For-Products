@@ -9,6 +9,28 @@ datasource db {
 enum Role {
   USER
   ADMIN
+  SUPER_ADMIN
+}
+
+model Store {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  policies    String?
+  isActive    Boolean   @default(true)
+  users       User[]
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// NEW: controlled order status values
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 model User {
@@ -18,9 +40,14 @@ model User {
   password  String?
   googleId  String?
   role      Role     @default(USER)
+  avatarUrl String?  // NEW: for PATCH /auth/profile & PATCH /admin/profile
+
+  storeId   String?
+  store     Store?   @relation(fields: [storeId], references: [id])
 
   carts     Cart[]
   orders    Order[]
+  reviews   Review[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -28,7 +55,7 @@ model User {
 
 model Category {
   id       String    @id @default(uuid())
-  name     String
+  name     String    @unique
   products Product[]
 }
 
@@ -43,16 +70,21 @@ model Product {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
 
+  storeId     String?
+  store       Store?   @relation(fields: [storeId], references: [id])
+
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  reviews     Review[]
 
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Cart {
   id     String     @id @default(uuid())
-  userId String
-  user   User       @relation(fields: [userId], references: [id])
+  userId String     @unique // FIXED: one cart per user
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade) // NEW: cascade
 
   items  CartItem[]
 
@@ -65,20 +97,41 @@ model CartItem {
   productId String
   quantity  Int
 
-  cart      Cart    @relation(fields: [cartId], references: [id])
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId]) // FIXED: no duplicate products per cart
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  userId      String
-  totalAmount Float
-  status      String
+  id              String      @id @default(uuid())
+  userId          String
+  totalAmount     Float
+  status          OrderStatus @default(PENDING) // FIXED: enum instead of String
+  shippingAddress Json        // NEW: required for POST /orders
 
-  user        User        @relation(fields: [userId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade) // NEW: cascade
   items       OrderItem[]
 
-  createdAt   DateTime    @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt // NEW: track status changes
+}
+
+model Review {
+  id        String  @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int     // 1–5
+  title     String?
+  body      String
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId])
 }
 
 model OrderItem {
@@ -88,6 +141,6 @@ model OrderItem {
   quantity  Int
   price     Float
 
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
 }

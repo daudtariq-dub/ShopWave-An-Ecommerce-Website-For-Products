@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { useSearch } from '../../hooks/useSearch';
 import { useFilters } from '../../hooks/useFilters';
 import SearchResultCard from '../../components/search/SearchResultCard';
@@ -62,9 +63,7 @@ export default function SearchResultsPage() {
           {!loading && !error && q && results.hits.length === 0 && (
             <div className="py-16 text-center">
               <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Search className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-gray-900 font-medium">No results for "{q}"</h3>
               <p className="text-sm text-gray-500 mt-1">Try different keywords or remove filters.</p>

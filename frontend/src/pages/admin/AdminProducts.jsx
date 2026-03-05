@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useProducts } from '../../hooks/useProducts';
 import { productsApi } from '../../api/products.api';
 import StockBadge from '../../components/product/StockBadge';
@@ -48,9 +49,7 @@ export default function AdminProducts() {
         </div>
         <Link to="/admin/products/new">
           <Button variant="primary">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus className="w-4 h-4" />
             Add Product
           </Button>
         </Link>
@@ -76,6 +75,7 @@ export default function AdminProducts() {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Product</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Store</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Price</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Stock</th>
                   <th className="py-3 px-4 text-right font-semibold text-gray-700">Actions</th>
@@ -93,6 +93,12 @@ export default function AdminProducts() {
                       </div>
                     </td>
                     <td className="py-3 px-4 capitalize text-gray-600">{p.category}</td>
+                    <td className="py-3 px-4 text-gray-600">
+                      {p.storeName
+                        ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">{p.storeName}</span>
+                        : <span className="text-gray-300 text-xs">—</span>
+                      }
+                    </td>
                     <td className="py-3 px-4 font-semibold text-gray-900">{formatPrice(p.price)}</td>
                     <td className="py-3 px-4"><StockBadge stock={p.stock ?? p.stockQuantity} /></td>
                     <td className="py-3 px-4">
@@ -115,7 +121,7 @@ export default function AdminProducts() {
                 ))}
                 {products.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                    <td colSpan={6} className="py-12 text-center text-sm text-gray-400">
                       No products found.
                     </td>
                   </tr>

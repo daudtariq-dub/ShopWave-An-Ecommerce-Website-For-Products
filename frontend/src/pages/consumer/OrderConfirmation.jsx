@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import Loader from '../../components/ui/Loader';
 import Button from '../../components/ui/Button';
@@ -18,9 +19,7 @@ export default function OrderConfirmation() {
   return (
     <div className="max-w-xl mx-auto flex flex-col items-center gap-8 py-16 text-center">
       <div className="w-24 h-24 bg-green-50 rounded-3xl flex items-center justify-center">
-        <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
+        <Check className="w-12 h-12 text-green-500" strokeWidth={2.5} />
       </div>
 
       <div className="flex flex-col gap-2">

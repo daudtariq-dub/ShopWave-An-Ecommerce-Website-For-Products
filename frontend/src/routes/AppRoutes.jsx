@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 
@@ -7,9 +7,10 @@ import { CartContext } from '../context/CartContext';
 import ConsumerLayout from '../components/layout/ConsumerLayout';
 import AuthLayout from '../components/layout/AuthLayout';
 import AdminLayout from '../components/layout/AdminLayout';
+import SuperAdminLayout from '../components/layout/SuperAdminLayout';
 
 // Route guards
-import { ProtectedRoute, AdminRoute, ConsumerRoute, PublicOnlyRoute } from '../components/auth/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, ConsumerRoute, PublicOnlyRoute, SuperAdminRoute } from '../components/auth/ProtectedRoute';
 
 // Auth pages
 import Login from '../pages/auth/Login';
@@ -37,19 +38,32 @@ import AdminProducts from '../pages/admin/AdminProducts';
 import AdminProductForm from '../pages/admin/AdminProductForm';
 import AdminInventory from '../pages/admin/AdminInventory';
 import AdminOrders from '../pages/admin/AdminOrders';
-import AdminUsers from '../pages/admin/AdminUsers';
-import AdminUserDetails from '../pages/admin/AdminUserDetails';
 import AdminProfile from '../pages/admin/AdminProfile';
 
-/**
- * AppBridge lives inside all providers and watches auth state changes.
- * When the user logs in, it triggers guest cart → server cart merge.
- */
+// Super Admin pages
+import SuperAdminDashboard from '../pages/super-admin/SuperAdminDashboard';
+import SuperAdminStores from '../pages/super-admin/SuperAdminStores';
+import SuperAdminStoreForm from '../pages/super-admin/SuperAdminStoreForm';
+import SuperAdminUsers from '../pages/super-admin/SuperAdminUsers';
+import SuperAdminUserDetails from '../pages/super-admin/SuperAdminUserDetails';
+import SuperAdminCategories from '../pages/super-admin/SuperAdminCategories';
+
 function AppBridge() {
   const { isAuthenticated } = useContext(AuthContext);
   const { mergeGuestCart, items } = useContext(CartContext);
+  // Track whether this is the initial mount. On page refresh, isAuthenticated
+  // flips false→true because auth loads from localStorage — that is NOT a fresh
+  // login and must not trigger a merge (CartContext already loads the server cart
+  // on mount via cartApi.getCart()). Only subsequent true→true transitions
+  // (i.e. actual login events handled by useAuth) need the merge, and useAuth
+  // already calls mergeGuestCart directly, so AppBridge no longer needs to.
+  const initialRef = useRef(true);
 
   useEffect(() => {
+    if (initialRef.current) {
+      initialRef.current = false;
+      return; // skip on initial mount / page refresh
+    }
     if (isAuthenticated) {
       mergeGuestCart(items);
     }
@@ -82,7 +96,6 @@ export default function AppRoutes() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/support/:slug" element={<SupportPage />} />
 
-          {/* Protected consumer routes */}
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/order-confirmation/:id" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
           <Route path="/account/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
@@ -97,12 +110,21 @@ export default function AppRoutes() {
           <Route path="/admin/products/:id/edit" element={<AdminProductForm />} />
           <Route path="/admin/inventory" element={<AdminInventory />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/users/:id" element={<AdminUserDetails />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
         </Route>
 
-        {/* Legacy admin redirects */}
+        {/* ── Super Admin routes ────────────────────────── */}
+        <Route element={<SuperAdminRoute><SuperAdminLayout /></SuperAdminRoute>}>
+          <Route path="/super-admin" element={<SuperAdminDashboard />} />
+          <Route path="/super-admin/stores" element={<SuperAdminStores />} />
+          <Route path="/super-admin/stores/new" element={<SuperAdminStoreForm />} />
+          <Route path="/super-admin/stores/:id/edit" element={<SuperAdminStoreForm />} />
+          <Route path="/super-admin/users" element={<SuperAdminUsers />} />
+          <Route path="/super-admin/users/:id" element={<SuperAdminUserDetails />} />
+          <Route path="/super-admin/categories" element={<SuperAdminCategories />} />
+        </Route>
+
+        {/* Legacy redirects */}
         <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
 
         {/* Fallback */}

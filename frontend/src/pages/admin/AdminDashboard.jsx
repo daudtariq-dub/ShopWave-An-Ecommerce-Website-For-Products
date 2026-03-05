@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Package, ClipboardList, Users, CircleDollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Loader from '../../components/ui/Loader';
 import { productsApi } from '../../api/products.api';
@@ -8,64 +9,32 @@ import { formatPrice } from '../../utils/helpers';
 import { useAuth } from '../../hooks/useAuth';
 
 const STATS_CONFIG = [
-  {
-    key: 'products', label: 'Products', change: 0,
-    color: 'bg-blue-50 text-blue-600',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-  },
-  {
-    key: 'orders', label: 'Orders', change: 0,
-    color: 'bg-violet-50 text-violet-600',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    key: 'customers', label: 'Customers', change: 0,
-    color: 'bg-emerald-50 text-emerald-600',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-  {
-    key: 'revenue', label: 'Revenue', change: 0,
-    color: 'bg-amber-50 text-amber-600',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
+  { key: 'products',  label: 'Products',  change: 0, gradient: 'from-blue-500 to-blue-700',      shadow: 'shadow-blue-500/25',    icon: Package },
+  { key: 'orders',    label: 'Orders',    change: 0, gradient: 'from-indigo-500 to-indigo-700',  shadow: 'shadow-indigo-500/25',  icon: ClipboardList },
+  { key: 'customers', label: 'Customers', change: 0, gradient: 'from-emerald-500 to-green-700',  shadow: 'shadow-emerald-500/25', icon: Users },
+  { key: 'revenue',   label: 'Revenue',   change: 0, gradient: 'from-amber-500 to-orange-600',   shadow: 'shadow-amber-500/25',   icon: CircleDollarSign },
 ];
 
-function StatCard({ label, value, icon, color, change }) {
+function StatCard({ label, value, gradient, shadow, change, icon: Icon }) {
   const positive = change >= 0;
   return (
-    <Card className="flex flex-col gap-4">
-      <div className="flex items-start justify-between">
-        <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center flex-shrink-0`}>
-          {icon}
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 text-white shadow-lg ${shadow}`}>
+      <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/10" />
+      <div className="absolute -right-1 -bottom-6 w-16 h-16 rounded-full bg-white/10" />
+      <div className="relative">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <Icon className="w-5 h-5 text-white" strokeWidth={2} />
+          </div>
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${positive ? 'bg-white/20 text-white' : 'bg-black/20 text-white/80'}`}>
+            {positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {Math.abs(change)}%
+          </div>
         </div>
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${positive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={positive ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'} />
-          </svg>
-          {Math.abs(change)}%
-        </div>
+        <p className="text-3xl font-bold tracking-tight">{value}</p>
+        <p className="text-sm text-white/70 mt-1 font-medium">{label}</p>
       </div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-      </div>
-    </Card>
+    </div>
   );
 }
 
@@ -280,7 +249,8 @@ export default function AdminDashboard() {
             label={s.label}
             value={s.key === 'revenue' ? formatPrice(dashboard?.stats?.[s.key] ?? 0) : dashboard?.stats?.[s.key] ?? 0}
             icon={s.icon}
-            color={s.color}
+            gradient={s.gradient}
+            shadow={s.shadow}
             change={dashboard?.changes?.[s.key] ?? 0}
           />
         ))}

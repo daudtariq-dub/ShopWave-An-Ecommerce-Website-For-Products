@@ -1,3 +1,4 @@
+import { Menu, ShoppingCart, LogOut } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import Button from './Button';
@@ -14,9 +15,7 @@ export default function Navbar({ onMenuClick }) {
           className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors lg:hidden"
           aria-label="Toggle menu"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <Menu className="w-5 h-5" />
         </button>
         <span className="font-semibold text-gray-800 text-lg">ShopWave</span>
       </div>
@@ -26,9 +25,7 @@ export default function Navbar({ onMenuClick }) {
           className="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors"
           aria-label="Cart"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
+          <ShoppingCart className="w-5 h-5" />
           {totalItems > 0 && (
             <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
               {totalItems > 99 ? '99+' : totalItems}
@@ -48,9 +45,7 @@ export default function Navbar({ onMenuClick }) {
         </div>
 
         <Button variant="ghost" size="sm" onClick={logout}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+          <LogOut className="w-4 h-4" />
           <span className="hidden sm:block">Logout</span>
         </Button>
       </div>

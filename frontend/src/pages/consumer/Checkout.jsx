@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useCart } from '../../hooks/useCart';
@@ -33,14 +34,21 @@ export default function Checkout() {
   const shipping = totalPrice > 50 ? 0 : 5.99;
   const total = totalPrice + tax + shipping;
 
+  const STORAGE_KEY = 'checkout_shipping';
+  const saved = (() => { try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY)); } catch { return null; } })();
+
   const formik = useFormik({
-    initialValues: {
+    initialValues: saved ?? {
       firstName: '', lastName: '', email: '',
       address: '', city: '', state: '', postalCode: '', country: 'US',
     },
     validationSchema: shippingSchema,
     onSubmit: () => setStep(1),
   });
+
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formik.values));
+  }, [formik.values]);
 
   const handlePlaceOrder = async () => {
     try {
@@ -50,6 +58,7 @@ export default function Checkout() {
         total,
       });
       clearCart();
+      sessionStorage.removeItem(STORAGE_KEY);
       navigate(`/order-confirmation/${order.id}`);
     } catch {
       toast.error('Failed to place order. Please try again.');
@@ -151,9 +160,7 @@ export default function Checkout() {
         <Card className="text-center">
           <div className="py-4 flex flex-col items-center gap-5">
             <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center">
-              <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <Check className="w-8 h-8 text-indigo-600" strokeWidth={2.5} />
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Ready to place your order?</h2>

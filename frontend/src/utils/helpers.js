@@ -50,3 +50,4 @@ export const debounce = (fn, delay) => {
 };
 
 export const isAdmin = (user) => user?.role === 'admin';
+export const isSuperAdmin = (user) => user?.role === 'super_admin';

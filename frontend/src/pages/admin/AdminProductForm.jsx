@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { productsApi } from '../../api/products.api';
@@ -55,7 +56,12 @@ export default function AdminProductForm() {
     onSubmit: async (values) => {
       setSaving(true);
       try {
-        const payload = { ...values, images, image: images[0] ?? null };
+        // Only send image fields when present (backend schema doesn't accept null)
+        const payload = {
+          ...values,
+          images,
+          ...(images?.[0] ? { image: images[0] } : {}),
+        };
         if (isEdit) {
           await productsApi.update(id, payload);
           toast.success('Product updated');
@@ -65,7 +71,7 @@ export default function AdminProductForm() {
         }
         navigate('/admin/products');
       } catch (err) {
-        toast.error(err.response?.data?.message ?? 'Failed to save product');
+        toast.error(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to save product');
       } finally {
         setSaving(false);
       }
@@ -78,9 +84,7 @@ export default function AdminProductForm() {
     <div className="flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/admin/products')} className="text-gray-400 hover:text-gray-600">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-2xl font-bold text-gray-900">
           {isEdit ? 'Edit Product' : 'Add New Product'}

@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { formatPrice } from '../../utils/helpers';
 import StockBadge from '../product/StockBadge';
@@ -28,9 +29,7 @@ export default function CartItem({ item }) {
             className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
             aria-label="Remove"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-4 h-4" />
           </button>
         </div>
 

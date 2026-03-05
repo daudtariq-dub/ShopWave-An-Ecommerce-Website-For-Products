@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { AlertTriangle, Heart, ShoppingCart, Star } from 'lucide-react';
 import { useProducts } from '../../hooks/useProducts';
 import { useCart } from '../../hooks/useCart';
 import ImageGallery from '../../components/product/ImageGallery';
@@ -11,6 +12,7 @@ import Button from '../../components/ui/Button';
 import { formatPrice } from '../../utils/helpers';
 import { getStockStatus, clampQty } from '../../utils/stockHelpers';
 import { toast } from 'react-toastify';
+import ReviewSection from '../../components/product/ReviewSection';
 
 const TABS = ['Description', 'Specifications', 'Reviews'];
 
@@ -56,9 +58,7 @@ export default function ProductDetail() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
         <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center">
-          <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle className="w-8 h-8 text-red-400" />
         </div>
         <p className="font-medium text-gray-900">Product not found</p>
         <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
@@ -95,9 +95,7 @@ export default function ProductDetail() {
                   className={`p-2 rounded-xl transition-colors ${wishlisted ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:bg-gray-100'}`}
                   aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
-                  <svg className="w-5 h-5" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
+                  <Heart className="w-5 h-5" fill={wishlisted ? 'currentColor' : 'none'} />
                 </button>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 leading-snug">{product.title}</h1>
@@ -108,13 +106,13 @@ export default function ProductDetail() {
                 <div className="flex items-center gap-2">
                   <div className="flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <svg
+                      <Star
                         key={i}
-                        className={`w-4 h-4 ${i < Math.round(product.rating.rate) ? 'text-amber-400' : 'text-gray-200'}`}
-                        fill="currentColor" viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                        className="w-4 h-4"
+                        fill={i < Math.round(product.rating.rate) ? '#fbbf24' : 'none'}
+                        color={i < Math.round(product.rating.rate) ? '#fbbf24' : '#d1d5db'}
+                        strokeWidth={1.5}
+                      />
                     ))}
                   </div>
                   <span className="text-sm text-gray-500">{product.rating.rate} · {product.rating.count} reviews</span>
@@ -165,9 +163,7 @@ export default function ProductDetail() {
                   disabled={!stockStatus.canAdd}
                   onClick={handleAddToCart}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
+                  <ShoppingCart className="w-5 h-5" />
                   {!stockStatus.canAdd
                     ? 'Out of Stock'
                     : cartItem
@@ -219,15 +215,7 @@ export default function ProductDetail() {
             </div>
           )}
           {activeTab === 'Reviews' && (
-            <div className="text-sm text-gray-500">
-              {product.rating ? (
-                <p>
-                  Average rating: <strong>{product.rating.rate}/5</strong> based on {product.rating.count} reviews.
-                </p>
-              ) : (
-                <p>No reviews yet.</p>
-              )}
-            </div>
+            <ReviewSection productId={product.id} />
           )}
         </div>
       </div>

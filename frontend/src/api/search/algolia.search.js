@@ -27,39 +27,48 @@ export const algoliaSearch = {
     const numericFilters = buildNumericFilters(filters);
 
     // algoliasearch v5 uses client.search({ requests }) API
-    const { results } = await c.search({
-      requests: [
-        {
-          indexName: INDEX_NAME,
-          query,
-          page,
-          hitsPerPage,
-          facets: ['category', 'brand', 'rating'],
-          facetFilters: facetFilters.length ? facetFilters : undefined,
-          numericFilters: numericFilters.length ? numericFilters : undefined,
-          highlightPreTag: '<mark>',
-          highlightPostTag: '</mark>',
-        },
-      ],
-    });
-
-    return normalizeAlgoliaResults(results[0] ?? { hits: [], nbHits: 0 });
+    try {
+      const { results } = await c.search({
+        requests: [
+          {
+            indexName: INDEX_NAME,
+            query,
+            page,
+            hitsPerPage,
+            facets: ['category', 'brand', 'rating'],
+            facetFilters: facetFilters.length ? facetFilters : undefined,
+            numericFilters: numericFilters.length ? numericFilters : undefined,
+            highlightPreTag: '<mark>',
+            highlightPostTag: '</mark>',
+          },
+        ],
+      });
+      return normalizeAlgoliaResults(results[0] ?? { hits: [], nbHits: 0 });
+    } catch (err) {
+      console.warn('[Algolia] Search failed:', err?.message ?? err);
+      return EMPTY_RESULTS;
+    }
   },
 
   async getSuggestions(partialQuery) {
     const c = getClient();
     if (!c || !partialQuery) return [];
-    const { results } = await c.search({
-      requests: [
-        {
-          indexName: INDEX_NAME,
-          query: partialQuery,
-          hitsPerPage: 5,
-          attributesToRetrieve: ['title', 'name'],
-        },
-      ],
-    });
-    return (results[0]?.hits ?? []).map((h) => h.title ?? h.name ?? '');
+    try {
+      const { results } = await c.search({
+        requests: [
+          {
+            indexName: INDEX_NAME,
+            query: partialQuery,
+            hitsPerPage: 5,
+            attributesToRetrieve: ['title', 'name'],
+          },
+        ],
+      });
+      return (results[0]?.hits ?? []).map((h) => h.title ?? h.name ?? '');
+    } catch (err) {
+      console.warn('[Algolia] Suggest failed:', err?.message ?? err);
+      return [];
+    }
   },
 };
 

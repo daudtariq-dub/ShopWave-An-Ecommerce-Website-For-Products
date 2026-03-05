@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Badge from '../ui/extended/Badge';
 import { formatPrice } from '../../utils/helpers';
 import { ORDER_STATUS_LABELS, ORDER_STATUS } from '../../utils/constants';
@@ -39,8 +39,8 @@ export default function OrdersTable({ orders, onOrderUpdate }) {
         <tbody>
           {orders.map((order) => {
             return (
-              <>
-                <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+              <React.Fragment key={order.id}>
+                <tr className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4 font-mono text-xs text-gray-500">#{order.id}</td>
                   <td className="py-3 px-4">
                     <div>
@@ -75,7 +75,7 @@ export default function OrdersTable({ orders, onOrderUpdate }) {
                   </td>
                 </tr>
                 {expandedId === order.id && order.items?.length > 0 && (
-                  <tr key={`${order.id}-expanded`} className="bg-gray-50">
+                  <tr className="bg-gray-50">
                     <td colSpan={7} className="px-4 py-3">
                       <div className="flex flex-col gap-2">
                         {order.items.map((item, i) => (
@@ -89,7 +89,7 @@ export default function OrdersTable({ orders, onOrderUpdate }) {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             );
           })}
         </tbody>

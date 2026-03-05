@@ -31,6 +31,11 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_USER_DETAILS: '/admin/users/:id',
   ADMIN_PROFILE: '/admin/profile',
+  // Super Admin
+  SUPER_ADMIN: '/super-admin',
+  SUPER_ADMIN_STORES: '/super-admin/stores',
+  SUPER_ADMIN_USERS: '/super-admin/users',
+  SUPER_ADMIN_CATEGORIES: '/super-admin/categories',
 };
 
 export const STOCK_THRESHOLDS = {

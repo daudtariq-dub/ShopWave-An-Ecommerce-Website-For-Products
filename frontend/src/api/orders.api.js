@@ -1,59 +1,66 @@
-/** Mock orders API — stores orders in localStorage */
-import { MOCK_ORDERS, delay } from './mock';
+import axiosInstance from './axios';
 
-const STORAGE_KEY = 'mock_orders';
-
-const getOrders = () => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [...MOCK_ORDERS]; }
-  catch { return [...MOCK_ORDERS]; }
-};
-const saveOrders = (list) => localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+// Maps backend order shape → frontend shape
+function normalizeOrder(o) {
+  return {
+    id: o.id,
+    total: o.totalAmount,
+    totalAmount: o.totalAmount,
+    status: (o.status ?? '').toLowerCase(),
+    createdAt: o.createdAt,
+    updatedAt: o.updatedAt,
+    shippingAddress: o.shippingAddress,
+    user: o.user,
+    customer: o.user,
+    items: (o.items ?? []).map((item) => ({
+      id: item.id,
+      productId: item.productId ?? item.product?.id,
+      title: item.product?.name ?? item.title ?? '',
+      name: item.product?.name ?? item.title ?? '',
+      image: item.product?.imageUrl ?? item.imageUrl ?? '',
+      imageUrl: item.product?.imageUrl ?? item.imageUrl ?? '',
+      quantity: item.quantity,
+      price: item.price,
+    })),
+  };
+}
 
 export const ordersApi = {
   getAll: async () => {
-    await delay(400);
-    return { orders: getOrders() };
+    const { data } = await axiosInstance.get('/orders/my');
+    return { orders: (data.orders ?? []).map(normalizeOrder) };
   },
 
   getById: async (id) => {
-    await delay(300);
-    const order = getOrders().find((o) => o.id === id);
-    if (!order) throw new Error('Order not found');
-    return order;
+    const { data } = await axiosInstance.get(`/orders/${id}`);
+    return normalizeOrder(data.order);
   },
 
-  place: async (payload) => {
-    await delay(700);
-    const order = {
-      id: 'ORD-' + String(Date.now()).slice(-6),
-      createdAt: new Date().toISOString(),
-      status: 'processing',
-      total: payload.total,
-      items: payload.items,
-      shippingAddress: payload.shippingAddress,
-    };
-    const existing = getOrders();
-    saveOrders([order, ...existing]);
-    return order;
+  place: async ({ items, shippingAddress }) => {
+    const { data } = await axiosInstance.post('/orders', { shippingAddress, items });
+    return normalizeOrder(data.order);
   },
 
   cancel: async (id) => {
-    await delay(400);
-    const orders = getOrders().map((o) => o.id === id ? { ...o, status: 'cancelled' } : o);
-    saveOrders(orders);
-    return { ok: true };
+    const { data } = await axiosInstance.patch(`/orders/${id}/cancel`);
+    return normalizeOrder(data.order);
   },
 
   // Admin
-  adminGetAll: async () => {
-    await delay(400);
-    return { orders: getOrders() };
+  adminGetAll: async (params = {}) => {
+    const normalized = { ...params };
+    if (normalized.status) normalized.status = normalized.status.toUpperCase();
+    const { data } = await axiosInstance.get('/admin/orders', { params: normalized });
+    return {
+      orders: (data.orders ?? []).map(normalizeOrder),
+      pagination: data.pagination,
+    };
   },
 
   adminUpdateStatus: async (id, status) => {
-    await delay(400);
-    const orders = getOrders().map((o) => o.id === id ? { ...o, status } : o);
-    saveOrders(orders);
-    return { ok: true };
+    const { data } = await axiosInstance.patch(`/admin/orders/${id}/status`, {
+      status: status.toUpperCase(),
+    });
+    return normalizeOrder(data.order);
   },
 };

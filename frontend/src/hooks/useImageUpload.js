@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { productsApi } from '../api/products.api';
-import axiosInstance from '../api/axios';
 
 export function useImageUpload() {
   const [uploading, setUploading] = useState(false);
@@ -23,24 +22,18 @@ export function useImageUpload() {
         file.type
       );
 
-      // 2. PUT directly to S3 (no auth header — presigned URL handles it)
-      await axiosInstance.put(uploadUrl, file, {
-        headers: {
-          'Content-Type': file.type,
-          // Remove auth header for S3 requests
-          Authorization: undefined,
-        },
-        onUploadProgress: (e) => {
-          if (e.total) setProgress(Math.round((e.loaded / e.total) * 100));
-        },
-        // Use raw axios for S3 to bypass our interceptors
-        transformRequest: [(data) => data],
+      // 2. PUT directly to S3 using fetch (avoids axios interceptors adding Authorization)
+      const res = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
       });
-
+      if (!res.ok) throw new Error(`S3 upload failed: ${res.status}`);
       setProgress(100);
+
       return publicUrl;
     } catch (err) {
-      const msg = err.response?.data?.message ?? 'Image upload failed.';
+      const msg = err.message ?? 'Image upload failed.';
       setError(msg);
       throw err;
     } finally {

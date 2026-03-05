@@ -1,42 +1,204 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import { Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
+import {
+  ChevronDown, ClipboardList, User, LogOut, Menu, X,
+  Monitor, Shirt, Home, Dumbbell, BookOpen, Sparkles, Gem, Smile,
+  ChevronLeft, ChevronRight, LayoutGrid,
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import CartBadge from '../cart/CartBadge';
 import CartDrawer from '../cart/CartDrawer';
 import SearchBar from '../ui/extended/SearchBar';
 
-const CATEGORY_NAV = [
-  { label: 'Electronics', slug: 'electronics' },
-  { label: 'Clothing', slug: 'clothing' },
-  { label: 'Home', slug: 'home' },
-  { label: 'Sports', slug: 'sports' },
-  { label: 'Books', slug: 'books' },
-  {label: 'Toys', slug: 'toys' },
-  {label: 'Beauty', slug: 'beauty' },
+const CATEGORIES = [
+  { label: 'All Products', slug: null,        to: '/products',              icon: LayoutGrid, iconColor: 'text-gray-600',   bgColor: 'bg-gray-100' },
+  { label: 'Electronics',  slug: 'electronics', to: '/category/electronics', icon: Monitor,    iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
+  { label: 'Clothing',     slug: 'clothing',    to: '/category/clothing',    icon: Shirt,      iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
+  { label: 'Home',         slug: 'home',        to: '/category/home',        icon: Home,       iconColor: 'text-amber-600',  bgColor: 'bg-amber-50' },
+  { label: 'Sports',       slug: 'sports',      to: '/category/sports',      icon: Dumbbell,   iconColor: 'text-green-600',  bgColor: 'bg-green-50' },
+  { label: 'Books',        slug: 'books',       to: '/category/books',       icon: BookOpen,   iconColor: 'text-violet-600', bgColor: 'bg-violet-50' },
+  { label: 'Beauty',       slug: 'beauty',      to: '/category/beauty',      icon: Sparkles,   iconColor: 'text-rose-600',   bgColor: 'bg-rose-50' },
+  { label: 'Jewelry',      slug: 'jewelery',    to: '/category/jewelery',    icon: Gem,        iconColor: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+  { label: 'Toys',         slug: 'toys',        to: '/category/toys',        icon: Smile,      iconColor: 'text-orange-600', bgColor: 'bg-orange-50' },
 ];
 
-function ConsumerNavbar({ onCartOpen }) {
+/* ─── Category Sidebar ────────────────────────────────────────────── */
+function CategorySidebar({ mobileOpen, onMobileClose }) {
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cat_sidebar_collapsed')) ?? false; } catch { return false; }
+  });
+
+  const toggle = () => {
+    setCollapsed((v) => {
+      const next = !v;
+      localStorage.setItem('cat_sidebar_collapsed', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const sidebar = (
+    <div
+      className={`
+        flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300 ease-in-out
+        ${collapsed ? 'w-[68px]' : 'w-52'}
+      `}
+    >
+      {/* header spacer */}
+      <div className="h-3 flex-shrink-0" />
+
+      {/* Category links */}
+      <nav className="flex-1 overflow-y-auto px-2 pb-2">
+        {!collapsed && (
+          <p className="px-3 mb-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Browse</p>
+        )}
+        <ul className="flex flex-col gap-0.5">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <li key={cat.to}>
+                <NavLink
+                  to={cat.to}
+                  end={cat.slug === null}
+                  onClick={onMobileClose}
+                  title={collapsed ? cat.label : undefined}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-2 py-2 rounded-xl transition-all duration-150 group
+                    ${isActive
+                      ? 'bg-indigo-50 ring-1 ring-indigo-100'
+                      : 'hover:bg-gray-50'
+                    }
+                    ${collapsed ? 'justify-center' : ''}`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                        ${isActive ? cat.bgColor : 'bg-gray-100 group-hover:' + cat.bgColor}`}
+                      >
+                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? cat.iconColor : 'text-gray-500 group-hover:' + cat.iconColor}`} />
+                      </span>
+                      {!collapsed && (
+                        <span className={`text-sm font-medium truncate ${isActive ? 'text-indigo-700' : 'text-gray-700'}`}>
+                          {cat.label}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Collapse toggle */}
+      <div className="border-t border-gray-100 p-2 flex-shrink-0">
+        <button
+          onClick={toggle}
+          className={`flex items-center gap-2 w-full px-2 py-2 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors ${collapsed ? 'justify-center' : ''}`}
+          title={collapsed ? 'Expand' : 'Collapse'}
+        >
+          {collapsed
+            ? <ChevronRight className="w-4 h-4 flex-shrink-0" />
+            : <>
+                <ChevronLeft className="w-4 h-4 flex-shrink-0" />
+                <span>Collapse</span>
+              </>
+          }
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop */}
+      <aside className="hidden lg:flex flex-shrink-0 sticky top-16 h-[calc(100vh-4rem)] self-start overflow-hidden">
+        {sidebar}
+      </aside>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div className="absolute inset-0 bg-gray-900/50" onClick={onMobileClose} />
+          <aside className="relative z-50 flex flex-shrink-0">
+            <div className="flex flex-col h-full w-52 bg-white shadow-2xl">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <span className="font-bold text-indigo-600 text-sm">Categories</span>
+                <button onClick={onMobileClose} className="p-1 rounded-lg text-gray-400 hover:bg-gray-100">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <nav className="flex-1 overflow-y-auto px-2 py-2">
+                <ul className="flex flex-col gap-0.5">
+                  {CATEGORIES.map((cat) => {
+                    const Icon = cat.icon;
+                    return (
+                      <li key={cat.to}>
+                        <NavLink
+                          to={cat.to}
+                          end={cat.slug === null}
+                          onClick={onMobileClose}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-2 py-2.5 rounded-xl transition-colors
+                            ${isActive ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`
+                          }
+                        >
+                          {({ isActive }) => (
+                            <>
+                              <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? cat.bgColor : 'bg-gray-100'}`}>
+                                <Icon className={`w-4 h-4 ${isActive ? cat.iconColor : 'text-gray-500'}`} />
+                              </span>
+                              <span className="text-sm font-medium">{cat.label}</span>
+                            </>
+                          )}
+                        </NavLink>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ─── Top Navbar ──────────────────────────────────────────────────── */
+function ConsumerNavbar({ onCartOpen, onSidebarOpen }) {
   const { user, isAuthenticated, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30" style={{boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}}>
-      {/* Top bar */}
-      <div className="relative flex items-center gap-4 px-4 sm:px-6 h-16">
-        {/* Logo */}
+    <header
+      className="bg-white border-b border-gray-200 sticky top-0 z-30 flex-shrink-0"
+      style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}
+    >
+      <div className="flex items-center gap-3 px-4 sm:px-6 h-16">
+        {/* Hamburger — mobile sidebar trigger */}
+        <button
+          onClick={onSidebarOpen}
+          className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors lg:hidden flex-shrink-0"
+          aria-label="Open categories"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <Link to="/" className="font-bold text-xl text-indigo-600 flex-shrink-0 tracking-tight">
           ShopWave
         </Link>
 
-        {/* Search — hidden on very small screens */}
-        <div className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
-          <SearchBar />
+        {/* Search — centred on desktop */}
+        <div className="flex-1 flex justify-center px-4">
+          <div className="w-full max-w-lg hidden sm:block">
+            <SearchBar />
+          </div>
         </div>
 
         {/* Right actions */}
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <CartBadge onClick={onCartOpen} />
 
           {isAuthenticated ? (
@@ -48,40 +210,26 @@ function ConsumerNavbar({ onCartOpen }) {
               >
                 <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center">
                   <span className="text-indigo-700 font-semibold text-xs">
-                    {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U'}
+                    {user?.name?.[0]?.toUpperCase() ?? 'U'}
                   </span>
                 </div>
                 <span className="text-sm font-medium text-gray-700 hidden md:block">
                   {user?.name ?? user?.email}
                 </span>
-                <svg className="w-4 h-4 text-gray-400 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
               </button>
 
               {accountMenuOpen && (
                 <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
                   <Link to="/account/orders" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    My Orders
+                    <ClipboardList className="w-4 h-4 text-gray-400" /> My Orders
                   </Link>
                   <Link to="/account/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Profile
+                    <User className="w-4 h-4 text-gray-400" /> Profile
                   </Link>
                   <div className="border-t border-gray-100">
-                    <button
-                      onClick={logout}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      Logout
+                    <button onClick={logout} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left">
+                      <LogOut className="w-4 h-4" /> Logout
                     </button>
                   </div>
                 </div>
@@ -89,29 +237,14 @@ function ConsumerNavbar({ onCartOpen }) {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link
-                to="/login"
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-              >
+              <Link to="/login" className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">
                 Sign in
               </Link>
-              <Link
-                to="/register"
-                className="px-4 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-colors shadow-sm"
-              >
+              <Link to="/register" className="px-4 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">
                 Register
               </Link>
             </div>
           )}
-
-          <button
-            onClick={() => setMobileMenuOpen((v) => !v)}
-            className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 lg:hidden"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -119,45 +252,11 @@ function ConsumerNavbar({ onCartOpen }) {
       <div className="sm:hidden px-4 pb-3">
         <SearchBar />
       </div>
-
-      {/* Category nav */}
-      <nav className="hidden lg:flex items-center gap-36 px-6 border-t border-gray-100 overflow-x-auto">
-        {CATEGORY_NAV.map((cat) => (
-          <NavLink
-            key={cat.slug}
-            to={`/category/${cat.slug}`}
-            className={({ isActive }) =>
-              `px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
-                isActive
-                  ? 'text-indigo-600 border-indigo-600'
-                  : 'text-gray-600 border-transparent hover:text-indigo-600'
-              }`
-            }
-          >
-            {cat.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-100 px-4 py-2">
-          {CATEGORY_NAV.map((cat) => (
-            <Link
-              key={cat.slug}
-              to={`/category/${cat.slug}`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2.5 text-sm text-gray-700 hover:text-indigo-600"
-            >
-              {cat.label}
-            </Link>
-          ))}
-        </div>
-      )}
     </header>
   );
 }
 
+/* ─── Footer ──────────────────────────────────────────────────────── */
 function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200 mt-16">
@@ -168,42 +267,16 @@ function Footer() {
             <p className="text-sm text-gray-500">Your one-stop shop for everything you need.</p>
           </div>
           {[
-            {
-              title: 'Shop',
-              links: [
-                { label: 'Electronics', to: '/category/electronics' },
-                { label: 'Clothing', to: '/category/clothing' },
-                { label: 'Home', to: '/category/home' },
-                { label: 'Sports', to: '/category/sports' },
-              ],
-            },
-            {
-              title: 'Account',
-              links: [
-                { label: 'Sign In', to: '/login' },
-                { label: 'Register', to: '/register' },
-                { label: 'Orders', to: '/account/orders' },
-                { label: 'Profile', to: '/account/profile' },
-              ],
-            },
-            {
-              title: 'Support',
-              links: [
-                { label: 'Help Center', to: '/support/help-center' },
-                { label: 'Returns', to: '/support/returns' },
-                { label: 'Contact Us', to: '/support/contact-us' },
-                { label: 'FAQ', to: '/support/faq' },
-              ],
-            },
+            { title: 'Shop', links: [{ label: 'Electronics', to: '/category/electronics' }, { label: 'Clothing', to: '/category/clothing' }, { label: 'Home', to: '/category/home' }, { label: 'Sports', to: '/category/sports' }] },
+            { title: 'Account', links: [{ label: 'Sign In', to: '/login' }, { label: 'Register', to: '/register' }, { label: 'Orders', to: '/account/orders' }, { label: 'Profile', to: '/account/profile' }] },
+            { title: 'Support', links: [{ label: 'Help Center', to: '/support/help-center' }, { label: 'Returns', to: '/support/returns' }, { label: 'Contact Us', to: '/support/contact-us' }, { label: 'FAQ', to: '/support/faq' }] },
           ].map((col) => (
             <div key={col.title}>
               <h4 className="font-semibold text-gray-900 mb-3 text-sm">{col.title}</h4>
               <ul className="flex flex-col gap-2">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link to={l.to} className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">
-                      {l.label}
-                    </Link>
+                    <Link to={l.to} className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">{l.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -218,16 +291,31 @@ function Footer() {
   );
 }
 
+/* ─── Root Layout ─────────────────────────────────────────────────── */
 export default function ConsumerLayout() {
   const [cartOpen, setCartOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <ConsumerNavbar onCartOpen={() => setCartOpen(true)} />
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
-        <Outlet />
-      </main>
-      <Footer />
+      <ConsumerNavbar
+        onCartOpen={() => setCartOpen(true)}
+        onSidebarOpen={() => setMobileSidebarOpen(true)}
+      />
+
+      <div className="flex flex-1 min-h-0">
+        <CategorySidebar
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
+        />
+        <main className="flex-1 min-w-0 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <Outlet />
+          </div>
+          <Footer />
+        </main>
+      </div>
+
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );

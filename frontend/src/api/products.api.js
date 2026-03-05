@@ -1,80 +1,94 @@
-/** Mock products API — swap this file for real axios calls once the backend is ready */
-import { MOCK_PRODUCTS, MOCK_CATEGORIES, delay } from './mock';
+import axiosInstance from './axios';
 
-let _products = [...MOCK_PRODUCTS]; // local mutable copy so admin edits are reflected
+// Maps backend product shape → frontend shape
+export function normalizeProduct(p) {
+  return {
+    id: p.id,
+    title: p.name,
+    name: p.name,
+    description: p.description,
+    price: p.price,
+    image: p.imageUrl || null,
+    imageUrl: p.imageUrl || null,
+    category: p.category?.name ?? p.category ?? '',
+    categoryId: p.category?.id ?? p.categoryId ?? '',
+    stock: p.stock ?? 0,
+    rating: p.rating?.rate != null ? p.rating : null,
+    store: p.store ?? null,
+    storeName: p.store?.name ?? null,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  };
+}
 
 export const productsApi = {
   getAll: async (params = {}) => {
-    await delay(350);
-    let list = [..._products];
-
-    if (params.category && params.category !== 'all') {
-      list = list.filter((p) => p.category === params.category);
-    }
-    if (params.q) {
-      const q = params.q.toLowerCase();
-      list = list.filter((p) => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
-    }
-    if (params.sort === 'price_asc')  list.sort((a, b) => a.price - b.price);
-    if (params.sort === 'price_desc') list.sort((a, b) => b.price - a.price);
-    if (params.sort === 'rating')     list.sort((a, b) => (b.rating?.rate ?? 0) - (a.rating?.rate ?? 0));
-
-    const limit = params.limit ? Number(params.limit) : list.length;
-    const page  = params.page  ? Number(params.page)  : 1;
-    const start = (page - 1) * limit;
-    const paged = list.slice(start, start + limit);
-
-    return { products: paged, total: list.length, page, limit };
+    const { data } = await axiosInstance.get('/products', {
+      params: {
+        page: (params.page ?? 0) + 1, // frontend is 0-indexed, backend is 1-indexed
+        limit: params.limit ?? 12,
+        category: params.category && params.category !== 'all' ? params.category : undefined,
+        search: params.q ?? params.search,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+      },
+    });
+    const products = (data.products ?? []).map(normalizeProduct);
+    return {
+      products,
+      total: data.pagination?.total ?? products.length,
+      page: data.pagination?.page ?? 1,
+      limit: data.pagination?.limit ?? products.length,
+      totalPages: data.pagination?.totalPages ?? 1,
+    };
   },
 
   getById: async (id) => {
-    await delay(250);
-    const product = _products.find((p) => String(p.id) === String(id));
-    if (!product) throw new Error('Product not found');
-    return product;
+    const { data } = await axiosInstance.get(`/products/${id}`);
+    return normalizeProduct(data.product);
   },
 
   getByCategory: async (slug, params = {}) => {
-    await delay(300);
-    const filtered = slug === 'all'
-      ? [..._products]
-      : _products.filter((p) => p.category === slug);
-    return { products: filtered, total: filtered.length };
+    const { data } = await axiosInstance.get('/products', {
+      params: { category: slug !== 'all' ? slug : undefined, page: params.page ?? 1, limit: params.limit ?? 12 },
+    });
+    const products = (data.products ?? []).map(normalizeProduct);
+    return { products, total: data.pagination?.total ?? products.length };
   },
 
   getFeatured: async () => {
-    await delay(300);
-    const featured = [..._products].sort((a, b) => (b.rating?.count ?? 0) - (a.rating?.count ?? 0)).slice(0, 8);
-    return { products: featured, total: featured.length };
+    const { data } = await axiosInstance.get('/products', { params: { limit: 8 } });
+    const products = (data.products ?? []).map(normalizeProduct);
+    return { products, total: products.length };
   },
 
   getCategories: async () => {
-    await delay(200);
-    return { categories: MOCK_CATEGORIES };
+    const { data } = await axiosInstance.get('/categories');
+    const categories = (data.categories ?? []).map((c) =>
+      typeof c === 'string' ? { id: c, name: c } : c,
+    );
+    return { categories };
   },
 
   create: async (payload) => {
-    await delay(500);
-    const newProduct = { ...payload, id: Date.now(), rating: { rate: 0, count: 0 } };
-    _products.push(newProduct);
-    return newProduct;
+    const { data } = await axiosInstance.post('/admin/products', payload);
+    return normalizeProduct(data.product);
   },
 
   update: async (id, payload) => {
-    await delay(400);
-    _products = _products.map((p) => String(p.id) === String(id) ? { ...p, ...payload } : p);
-    return _products.find((p) => String(p.id) === String(id));
+    const { data } = await axiosInstance.patch(`/admin/products/${id}`, payload);
+    return normalizeProduct(data.product);
   },
 
   delete: async (id) => {
-    await delay(300);
-    _products = _products.filter((p) => String(p.id) !== String(id));
+    await axiosInstance.delete(`/admin/products/${id}`);
     return { ok: true };
   },
 
-  /** Presigned URL mock — returns a fake URL; real upload won't happen */
-  getUploadUrl: async (filename, _contentType) => {
-    await delay(200);
-    return { uploadUrl: '#', publicUrl: `https://placehold.co/400x400/eef2ff/4f46e5?text=${encodeURIComponent(filename)}` };
+  getUploadUrl: async (filename, contentType) => {
+    const { data } = await axiosInstance.get('/admin/products/upload-url', {
+      params: { filename, contentType },
+    });
+    return data; // { uploadUrl, publicUrl }
   },
 };
