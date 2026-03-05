@@ -4,6 +4,7 @@ import { logger } from 'hono/logger';
 import { ZodError } from 'zod';
 import { AppError } from './middleware/error';
 import type { AppVariables } from './types';
+import { env } from './config/env';
 
 // Route imports — uncommented as each phase is completed
 import { authRoutes } from './modules/auth/auth.routes';
