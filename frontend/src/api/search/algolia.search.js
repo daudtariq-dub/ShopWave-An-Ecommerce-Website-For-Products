@@ -1,9 +1,9 @@
 import { algoliasearch } from 'algoliasearch';
 import { normalizeAlgoliaResults, EMPTY_RESULTS } from '../../utils/searchAdapter';
 
-const APP_ID = import.meta.env.VITE_ALGOLIA_APP_ID ?? '';
-const SEARCH_KEY = import.meta.env.VITE_ALGOLIA_SEARCH_KEY ?? '';
-const INDEX_NAME = import.meta.env.VITE_ALGOLIA_INDEX ?? 'products';
+const APP_ID = (import.meta.env.VITE_ALGOLIA_APP_ID ?? '').trim();
+const SEARCH_KEY = (import.meta.env.VITE_ALGOLIA_SEARCH_KEY ?? '').trim();
+const INDEX_NAME = (import.meta.env.VITE_ALGOLIA_INDEX ?? 'products').trim();
 
 let client = null;
 
