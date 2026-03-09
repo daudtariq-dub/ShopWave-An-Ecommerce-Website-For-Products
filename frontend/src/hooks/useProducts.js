@@ -26,6 +26,23 @@ export function useProducts() {
     }
   }, []);
 
+  const fetchAdminProducts = useCallback(async (params = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await productsApi.getAdminAll(params);
+      const list = data.products ?? data ?? [];
+      setProducts(list);
+      setTotal(data.total ?? data.pagination?.total ?? list.length);
+      return data;
+    } catch (err) {
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? 'Failed to fetch products.');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const fetchProductById = useCallback(async (id) => {
     setLoading(true);
     setError(null);
@@ -85,6 +102,6 @@ export function useProducts() {
   return {
     products, product, categories, total,
     loading, error,
-    fetchProducts, fetchProductById, fetchByCategory, fetchFeatured, fetchCategories,
+    fetchProducts, fetchAdminProducts, fetchProductById, fetchByCategory, fetchFeatured, fetchCategories,
   };
 }

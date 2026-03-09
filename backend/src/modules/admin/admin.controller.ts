@@ -148,9 +148,15 @@ export const updateOrderStatus = async (c: Context<{ Variables: AppVariables }>)
   const { id } = c.req.param();
   const body = await c.req.json();
   const { status } = updateOrderStatusSchema.parse(body);
+  const { storeId } = c.get('user');
 
   const order = await prisma.order.findUnique({ where: { id } });
   if (!order) throw new AppError('Order not found', 404);
+
+  if (storeId) {
+    const hasStoreItem = await prisma.orderItem.findFirst({ where: { orderId: id, product: { storeId } } });
+    if (!hasStoreItem) throw new AppError('Order not found', 404);
+  }
 
   const updated = await prisma.order.update({
     where: { id },
@@ -190,6 +196,33 @@ export const getAdminUserById = async (c: Context<{ Variables: AppVariables }>) 
   return c.json({ user });
 };
 
+// GET /admin/products
+export const getAdminProducts = async (c: Context<{ Variables: AppVariables }>) => {
+  const query = c.req.query();
+  const page = Math.max(1, parseInt(query.page ?? '1', 10));
+  const limit = Math.min(50, Math.max(1, parseInt(query.limit ?? '20', 10)));
+  const skip = (page - 1) * limit;
+  const { storeId } = c.get('user');
+
+  const where: Record<string, unknown> = storeId ? { storeId } : {};
+
+  if (query.category) where.category = { name: query.category };
+  if (query.search) where.name = { contains: query.search, mode: 'insensitive' };
+  if (query.minPrice || query.maxPrice) {
+    const price: Record<string, number> = {};
+    if (query.minPrice) price.gte = parseFloat(query.minPrice);
+    if (query.maxPrice) price.lte = parseFloat(query.maxPrice);
+    where.price = price;
+  }
+
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({ where, skip, take: limit, include: productInclude, orderBy: { createdAt: 'desc' } }),
+    prisma.product.count({ where }),
+  ]);
+
+  return c.json({ products, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+};
+
 // POST /admin/products
 export const createProduct = async (c: Context<{ Variables: AppVariables }>) => {
   const body = await c.req.json();
@@ -210,8 +243,10 @@ export const updateProduct = async (c: Context<{ Variables: AppVariables }>) => 
   const { id } = c.req.param();
   const body = await c.req.json();
   const raw = productBody.partial().parse(body);
+  const { storeId } = c.get('user');
   const existing = await prisma.product.findUnique({ where: { id } });
   if (!existing) throw new AppError('Product not found', 404);
+  if (storeId && existing.storeId !== storeId) throw new AppError('Product not found', 404);
   // Only resolve fields that were provided
   const update: Record<string, unknown> = {};
   if (raw.name ?? raw.title) update.name = raw.name ?? raw.title;
@@ -242,8 +277,10 @@ export const updateProduct = async (c: Context<{ Variables: AppVariables }>) => 
 // DELETE /admin/products/:id
 export const deleteProduct = async (c: Context<{ Variables: AppVariables }>) => {
   const { id } = c.req.param();
+  const { storeId } = c.get('user');
   const existing = await prisma.product.findUnique({ where: { id } });
   if (!existing) throw new AppError('Product not found', 404);
+  if (storeId && existing.storeId !== storeId) throw new AppError('Product not found', 404);
   await prisma.product.delete({ where: { id } });
   elasticIndex.delete(id);
   algoliaIndex.delete(id);
@@ -255,8 +292,10 @@ export const updateProductStock = async (c: Context<{ Variables: AppVariables }>
   const { id } = c.req.param();
   const body = await c.req.json();
   const { stock } = z.object({ stock: z.coerce.number().int().min(0) }).parse(body);
+  const { storeId } = c.get('user');
   const existing = await prisma.product.findUnique({ where: { id } });
   if (!existing) throw new AppError('Product not found', 404);
+  if (storeId && existing.storeId !== storeId) throw new AppError('Product not found', 404);
   const product = await prisma.product.update({ where: { id }, data: { stock }, include: productInclude });
   return c.json({ product });
 };

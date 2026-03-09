@@ -17,7 +17,7 @@ function normalizeInventoryItem(p) {
 
 export const inventoryApi = {
   getAll: async (params = {}) => {
-    const { data } = await axiosInstance.get('/products', {
+    const { data } = await axiosInstance.get('/admin/products', {
       params: { limit: 100, ...params },
     });
     return { inventory: (data.products ?? []).map(normalizeInventoryItem) };

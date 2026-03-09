@@ -70,6 +70,27 @@ export const productsApi = {
     return { categories };
   },
 
+  getAdminAll: async (params = {}) => {
+    const { data } = await axiosInstance.get('/admin/products', {
+      params: {
+        page: (params.page ?? 0) + 1,
+        limit: params.limit ?? 20,
+        category: params.category && params.category !== 'all' ? params.category : undefined,
+        search: params.q ?? params.search,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+      },
+    });
+    const products = (data.products ?? []).map(normalizeProduct);
+    return {
+      products,
+      total: data.pagination?.total ?? products.length,
+      page: data.pagination?.page ?? 1,
+      limit: data.pagination?.limit ?? products.length,
+      totalPages: data.pagination?.totalPages ?? 1,
+    };
+  },
+
   create: async (payload) => {
     const { data } = await axiosInstance.post('/admin/products', payload);
     return normalizeProduct(data.product);

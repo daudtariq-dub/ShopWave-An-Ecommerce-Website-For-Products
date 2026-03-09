@@ -13,7 +13,7 @@ import { formatPrice } from '../../utils/helpers';
 import { toast } from 'react-toastify';
 
 export default function AdminProducts() {
-  const { products, loading, error, total, fetchProducts } = useProducts();
+  const { products, loading, error, total, fetchAdminProducts } = useProducts();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -22,7 +22,7 @@ export default function AdminProducts() {
   const pageSize = 20;
 
   useEffect(() => {
-    fetchProducts({ page, limit: pageSize, search });
+    fetchAdminProducts({ page, limit: pageSize, search });
   }, [page, search]); // eslint-disable-line
 
   const handleDelete = async () => {
@@ -32,7 +32,7 @@ export default function AdminProducts() {
       await productsApi.delete(deleteTarget.id);
       toast.success(`"${deleteTarget.title}" deleted`);
       setDeleteTarget(null);
-      fetchProducts({ page, limit: pageSize });
+      fetchAdminProducts({ page, limit: pageSize });
     } catch {
       toast.error('Failed to delete product');
     } finally {

@@ -8,6 +8,7 @@ import {
   getAdminUsers,
   getAdminUserById,
   updateAdminProfile,
+  getAdminProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -24,6 +25,7 @@ adminRoutes.use('*', authMiddleware, adminMiddleware);
 adminRoutes.get('/dashboard', getDashboard);
 
 // Product CRUD
+adminRoutes.get('/products', getAdminProducts);
 adminRoutes.get('/products/upload-url', getProductUploadUrl);
 adminRoutes.post('/products', createProduct);
 adminRoutes.patch('/products/:id', updateProduct);
