@@ -8,8 +8,12 @@ export function useSearch() {
 
   const { search } = context;
 
+  // Always-fresh ref so the debounced function never closes over a stale search
+  const searchRef = useRef(search);
+  searchRef.current = search;
+
   const debouncedSearchRef = useRef(
-    debounce((q, filters, page) => search(q, filters, page), 350)
+    debounce((q, filters, page) => searchRef.current(q, filters, page), 350)
   );
 
   const debouncedSearch = useCallback((q, filters, page) => {

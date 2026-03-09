@@ -8,15 +8,16 @@ import {
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // true until initial validation done
+  // Initialize immediately from localStorage — no loading flash
+  const [user, setUser] = useState(() => getStoredUser());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!getToken() && !!getStoredUser());
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Validate stored token on mount
+  // Silently validate stored token in background; refresh user data or clear if expired
   useEffect(() => {
     const token = getToken();
-    if (!token) { setLoading(false); return; }
+    if (!token) return;
 
     authApi.me()
       .then((userData) => {
@@ -27,8 +28,9 @@ export function AuthProvider({ children }) {
       .catch(() => {
         removeToken();
         removeStoredUser();
-      })
-      .finally(() => setLoading(false));
+        setUser(null);
+        setIsAuthenticated(false);
+      });
   }, []);
 
   const login = useCallback((token, userData) => {

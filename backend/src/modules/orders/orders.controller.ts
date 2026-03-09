@@ -124,15 +124,32 @@ export const cancelOrder = async (c: Context<{ Variables: AppVariables }>) => {
   const { id: userId } = c.get('user');
   const { id } = c.req.param();
 
-  const order = await prisma.order.findFirst({ where: { id, userId } });
+  const order = await prisma.order.findFirst({
+    where: { id, userId },
+    include: { items: true },
+  });
   if (!order) throw new AppError('Order not found', 404);
   if (order.status === 'CANCELLED') throw new AppError('Order is already cancelled', 400);
   if (order.status === 'DELIVERED') throw new AppError('Cannot cancel a delivered order', 400);
 
-  const updated = await prisma.order.update({
-    where: { id },
-    data: { status: 'CANCELLED' },
-    include: orderInclude,
+  const updated = await prisma.$transaction(async (tx) => {
+    const updatedOrder = await tx.order.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+      include: orderInclude,
+    });
+
+    // Restore stock for all items
+    await Promise.all(
+      order.items.map((item) =>
+        tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        }),
+      ),
+    );
+
+    return updatedOrder;
   });
 
   return c.json({ order: updated });

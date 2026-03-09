@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useSearch } from '../../hooks/useSearch';
@@ -16,8 +16,12 @@ export default function SearchResultsPage() {
   const { results, loading, error, search } = useSearch();
   const { filters, setFilter, clearFilters, activeFilterCount, page, sort } = useFilters();
 
+  // Always-fresh ref so the effect never closes over a stale search function
+  const searchRef = useRef(search);
+  searchRef.current = search;
+
   useEffect(() => {
-    if (q) search(q, { ...filters, sort }, page);
+    if (q) searchRef.current(q, { ...filters, sort }, page);
   }, [q, page, sort, JSON.stringify(filters)]); // eslint-disable-line
 
   return (

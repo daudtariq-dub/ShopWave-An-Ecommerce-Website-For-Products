@@ -95,7 +95,9 @@ export const getDashboard = async (c: Context<{ Variables: AppVariables }>) => {
     ordersByStatus,
     recentOrders,
   ] = await Promise.all([
-    prisma.user.count({ where: { role: 'USER' } }),
+    storeId
+      ? prisma.order.groupBy({ by: ['userId'], where: orderWhere }).then((rows) => rows.length)
+      : prisma.user.count({ where: { role: 'USER' } }),
     prisma.order.count({ where: orderWhere }),
     prisma.order.aggregate({
       _sum: { totalAmount: true },
@@ -150,12 +152,40 @@ export const updateOrderStatus = async (c: Context<{ Variables: AppVariables }>)
   const { status } = updateOrderStatusSchema.parse(body);
   const { storeId } = c.get('user');
 
-  const order = await prisma.order.findUnique({ where: { id } });
+  const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) throw new AppError('Order not found', 404);
 
   if (storeId) {
     const hasStoreItem = await prisma.orderItem.findFirst({ where: { orderId: id, product: { storeId } } });
     if (!hasStoreItem) throw new AppError('Order not found', 404);
+  }
+
+  // Prevent reactivating a cancelled order — stock was already restored
+  if (order.status === 'CANCELLED' && status !== 'CANCELLED') {
+    throw new AppError('Cannot reactivate a cancelled order', 400);
+  }
+
+  const becomingCancelled = status === 'CANCELLED' && order.status !== 'CANCELLED';
+
+  if (becomingCancelled) {
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.order.update({
+        where: { id },
+        data: { status },
+        include: orderInclude,
+      });
+      // Restore stock for all items
+      await Promise.all(
+        order.items.map((item) =>
+          tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          }),
+        ),
+      );
+      return updatedOrder;
+    });
+    return c.json({ order: updated });
   }
 
   const updated = await prisma.order.update({
